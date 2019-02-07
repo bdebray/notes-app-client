@@ -84,7 +84,7 @@ export default class Notes extends Component {
         try {
             if (this.file) {
                 //remove existing attachment
-                await s3Remove(this.state.note.attachment);
+                await this.deleteAttachment(this.state.note.attachment);
 
                 attachment = await s3Upload(this.file);
             }
@@ -100,6 +100,14 @@ export default class Notes extends Component {
         }
     }
 
+    deleteNote() {
+        return API.del("notes", `/notes/${this.props.match.params.id}`);
+    }
+
+    async deleteAttachment(attachment) {
+        //remove existing attachment
+        await s3Remove(this.state.note.attachment);
+    }
 
     handleDelete = async event => {
         event.preventDefault();
@@ -113,6 +121,15 @@ export default class Notes extends Component {
         }
 
         this.setState({ isDeleting: true });
+
+        try {
+            await this.deleteNote();
+            await this.deleteAttachment(this.state.note.attachment);
+            this.props.history.push("/");
+        } catch (e) {
+            alert(e);
+            this.setState({ isDeleting: false });
+        }
     }
 
     render() {
